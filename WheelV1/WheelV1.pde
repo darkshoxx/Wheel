@@ -1,8 +1,10 @@
-PImage centerpiece;
+PImage centerpiece; //<>// //<>//
 String path;
 String[] segments;
-float angle2 = random(0, 2*PI);
+float angle2 = 0; //random(0, 2*PI);
 float angle3 = 0;
+boolean showresult = false;
+String displayText="";
 import processing.sound.*;
 SoundFile tick;
 
@@ -10,8 +12,7 @@ void setup() {
   background(255);
   size(800, 800);
   path = "C:\\code\\GithubRepos\\Wheel\\";
-  tick = new SoundFile(this, path + "sound_click.wav");
-  tick.play();
+  tick = new SoundFile(this, path + "click_short.wav");
   try {
     centerpiece = loadImage(path + "center1.png");
   }
@@ -35,48 +36,82 @@ void draw() {
     segments[0] = "Heads";
     segments[1] = "Tails";
   }
+  // truncate segments
+  for (int i=0; i< segments.length; i++) {
+    segments[i] = segments[i].substring(0, min(40, segments[i].length()));
+  }
   var friction = 0.99;
+  int segnum = segments.length;
+  float angle = 2*PI/segnum;
+  float quarter = height/4;
+  float half = height/2;
+  float full = height;
   if (angle3<0.009) {
     friction=0.9;
   }
   angle3 = (angle3)*friction;
-  if (angle3<1e-7) {
+  if (angle3<1e-7&angle3>0) {
     angle3 = 0;
-    // println("WHEEL STOPPED");
+    println("WHEEL STOPPED! Segment index is:");
+    println((segnum-1) - (ceil((angle2/angle)) % segnum) );
+    println("WHEEL STOPPED! Segment Label is:");
+    displayText = segments[(segnum-1) - (ceil((angle2/angle)) % segnum)];
+    showresult = true;
   }
+  float oldAngle = angle2;
   angle2 = angle2 + angle3;
   int c_rad = 25;
 
-  float full = height;
-  float half = height/2;
-  float quarter = height/4;
+
+
   float boundary = 10;
   float almost = full - boundary;
-  float angle = 2*PI/segments.length;
+
   fill(100);
   ellipse(half, half, almost, almost);
   fill(200);
-  //draw segments
+  // test for segment change
+  boolean newSegment = false;
+  float oldAngleScale = oldAngle/(2*PI)*segnum;
+  float newAngleScale = angle2/(2*PI)*segnum;
+  if (floor(oldAngleScale) != floor(newAngleScale)) {
+    newSegment = true;
+    // tick.play();
+  }
+
+
+  // draw segments
   drawSegments(half, almost, angle, angle2);
-  //label segments
-  drawLabels(half, angle, angle2);
+  // label segments
+  drawLabels(half, angle, angle2, almost, segnum);
+
+  if (newSegment) {
+    tick.play();
+  }
+
+  // draw centerpiece
   if (centerpiece != null) {
     image(centerpiece, half - c_rad, half - c_rad, 2*c_rad, 2*c_rad);
   } else {
     ellipse(half, half, 2*c_rad, 2*c_rad);
   }
+  // draw triangle
   fill(200);
   triangle(full - 2*c_rad, half, almost+boundary/2, half - c_rad, almost+boundary/2, half + c_rad);
-  //println(angle2);
+  if (showresult){
+      rect(quarter, quarter, half, quarter/2);
+      fill(0);
+      text(displayText, quarter, quarter + quarter/2) ;
+  }
 }
 
 int[] colourpath(float along) {
-  int[] return_colours = new int[3]; 
-    if (along<0.0 || along >1.0) { //<>// //<>// //<>//
+  int[] return_colours = new int[3];
+  if (along<0.0 || along >1.0) {
     return_colours[0] = 0;
-      return_colours[1] = 0;
-      return_colours[2] = 0;
-      return return_colours;
+    return_colours[1] = 0;
+    return_colours[2] = 0;
+    return return_colours;
   }
   int upper = 255;
   int lower = 100;
@@ -93,54 +128,69 @@ int[] colourpath(float along) {
   //5 101
   //6 100
 
-switch(floor(along_six)){
+  switch(floor(along_six)) {
   case 0:
-  red = upper;
-  green = lower + (upper - lower)*decimals;
-  blue = lower;
-  break;
+    red = upper;
+    green = lower + (upper - lower)*decimals;
+    blue = lower;
+    break;
   case 1:
-  red = upper + (lower - upper)*decimals;
-  green = upper;
-  blue = lower;
-  break;
+    red = upper + (lower - upper)*decimals;
+    green = upper;
+    blue = lower;
+    break;
   case 2:
-  red = lower;
-  green = upper;
-  blue = lower + (upper - lower)*decimals;
-  break;
+    red = lower;
+    green = upper;
+    blue = lower + (upper - lower)*decimals;
+    break;
   case 3:
-  red = lower;
-  green = upper + (lower - upper)*decimals;
-  blue = upper;
-  break;
-  case 4:
-  red = lower + (upper - lower)*decimals;
-  green = lower;
-  blue = upper;
-  break;
+    red = lower;
+    green = upper + (lower - upper)*decimals;
+    blue = upper;
+    break;
+  case 4: //<>//
+    red = lower + (upper - lower)*decimals;
+    green = lower;
+    blue = upper;
+    break;
   case 5:
-  red = upper;
-  green = lower;
-  blue = upper + (lower - upper)*decimals;
-  break;
-}
+    red = upper;
+    green = lower;
+    blue = upper + (lower - upper)*decimals;
+    break;
+  }
 
 
 
   return_colours[0] = round(red);
-    return_colours[1] = round(green);
-    return_colours[2] = round(blue);
-    return return_colours;
-}
-
-void drawLabels(float half, float angle, float angle2) {
+  return_colours[1] = round(green);
+  return_colours[2] = round(blue);
+  return return_colours;
+} //<>//
+//<>//
+void drawLabels(float half, float angle, float angle2, float almost, int segnum) {
+  float text_angle = 2*PI/segnum;
   translate(half, half);
   rotate(angle/2+ angle2);
-  for (int i=0; i< segments.length; i++) {
+  for (int i=0; i< segments.length; i++) { //<>// //<>//
     fill(0);
     rotate(angle);
-    text(segments[i], 150, 0);
+    textSize(25);
+    float currentWidth = textWidth(segments[i]);
+    float targetWidth = almost/2 - 150;
+    float maxWidthSize = 25*(targetWidth/currentWidth);
+    float maxHeightSize = tan(text_angle/2)*100;
+    float newSize = max(min(maxWidthSize, maxHeightSize), 10);
+    if (newSize<10) {
+      //segments[i] = segments[i].substring(0, min(40, segments[i].length()));
+      newSize = 10;
+    }
+    textSize(newSize); //<>//
+    float adjustAngle = asin(newSize/(almost/2));
+    rotate(adjustAngle);
+    text(segments[i], 100, 0);
+    rotate(-adjustAngle);
   }
   rotate(-angle/2 - angle2);
   translate(-half, -half);
@@ -162,6 +212,7 @@ void drawSegments(float half, float almost, float angle, float angle2) {
 
 void mouseClicked() {
   if (abs(mouseX-height/2)<25 & abs(mouseY-height/2)<25 ) {
+    showresult = false;
     float denominator =random(23.99, 31.65); // these values represent 3 and 4 complete spins of the wheel. Hence the sample is "fair enough" between the entire range.
     angle3 = 2*PI/denominator;
   }

@@ -1,19 +1,6 @@
-Seg1
-SEG2
-SJAOLFE3
-VLEA UOL4
-Fifth Segment
-Seg1
-SEG2
-SJAOLFE3
-VLEA UOL4
-Fifth Segment
-Seg1
-SEG2
-SJAOLFE3
-VLEA UOL4
-Fifth SegmentSeg1
-SEG2
-SJAOLFE3
-VLEA UOL4
-Fifth Segment
+Option1
+Option number 2
+Option #3
+Fourth Option
+55555555
+and the six
