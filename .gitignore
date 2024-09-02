@@ -10,3 +10,4 @@ application.macosx
 out
 WheelV1/windows-amd64/
 WheelV1/libraries/
+WheelV1/*.autosave
