@@ -1,13 +1,18 @@
 PImage centerpiece;
 String path;
 String[] segments;
-float angle2 = 0;
+float angle2 = random(0, 2*PI);
 float angle3 = 0;
+float speed = 0;
+import processing.sound.*;
+SoundFile tick;
 
 void setup() {
   background(255);
   size(800, 800);
   path = "C:\\code\\processing-4.3\\Wheel\\";
+  tick = new SoundFile(this, path + "sound_click.wav");
+  tick.play();
   try {
     centerpiece = loadImage(path + "center1.png");
   }
@@ -31,36 +36,31 @@ void draw() {
     segments[0] = "Heads";
     segments[1] = "Tails";
   }
-  angle3 = (angle3)*0.99;
+  var friction = 0.99;
+  if (angle3<0.009) {
+    friction=0.9;
+  }
+  angle3 = (angle3)*friction;
+  if (angle3<1e-7) {
+    angle3 = 0;
+    println("WHEEL STOPPED");
+  }
   angle2 = angle2 + angle3;
-  var c_rad = 25;
+  int c_rad = 25;
 
-  var full = height;
-  var half = height/2;
-  var quarter = height/4;
-  var boundary = 10;
-  var almost = full - boundary;
-  var angle = 2*PI/segments.length;
+  float full = height;
+  float half = height/2;
+  float quarter = height/4;
+  float boundary = 10;
+  float almost = full - boundary;
+  float angle = 2*PI/segments.length;
   fill(100);
   ellipse(half, half, almost, almost);
   fill(200);
   //draw segments
-  for (int i=0; i< segments.length; i++) {
-    //println(segments[i]);
-    fill(i*255/segments.length);
-
-    arc(half, half, almost-10, almost-10, i*angle + angle2, (i+1)*angle + angle2 );
-  }
+  drawSegments(half, almost, angle, angle2);
   //label segments
-  translate(half, half);
-  rotate(angle/2+ angle2);
-  for (int i=0; i< segments.length; i++) {
-    fill(0, 255, 100*i);
-    rotate(angle);
-    text(segments[i], 50, 0);
-  }
-  rotate(-angle/2 - angle2);
-  translate(-half, -half);
+  drawLabels(half, angle, angle2);
   if (centerpiece != null) {
     image(centerpiece, half - c_rad, half - c_rad, 2*c_rad, 2*c_rad);
   } else{
@@ -71,11 +71,30 @@ void draw() {
   //println(angle2);
 }
 
+void drawLabels(float half, float angle, float angle2){
+  translate(half, half);
+  rotate(angle/2+ angle2);
+  for (int i=0; i< segments.length; i++) {
+    fill(0, 255, 100*i);
+    rotate(angle);
+    text(segments[i], 50, 0);
+  }
+  rotate(-angle/2 - angle2);
+  translate(-half, -half);
+}
+
+void drawSegments(float half, float almost, float angle, float angle2){
+  for (int i=0; i< segments.length; i++) {
+    //println(segments[i]);
+    fill(i*255/segments.length);
+
+    arc(half, half, almost-10, almost-10, i*angle + angle2, (i+1)*angle + angle2 );
+  }
+}
+
 void mouseClicked() {
   if (abs(mouseX-height/2)<25 & abs(mouseY-height/2)<25 ) {
-    angle2 = random(2*PI);
-    println("random angle");
-    println(angle2);
-    angle3 = PI/20;
+    float denominator =random(23.99, 31.65); // these values represent 3 and 4 complete spins of the wheel. Hence the sample is "fair enough" between the entire range.
+    angle3 = 2*PI/denominator; 
   }
 }
