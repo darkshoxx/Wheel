@@ -1,7 +1,7 @@
-PImage centerpiece; //<>// //<>//
+PImage centerpiece;   //<>// //<>// //<>// //<>//
 String path;
 String[] segments;
-float angle2 = 0; //random(0, 2*PI);
+float angle2 = random(0, 2*PI);
 float angle3 = 0;
 boolean showresult = false;
 String displayText="";
@@ -101,7 +101,14 @@ void draw() {
   if (showresult){
       rect(quarter, quarter, half, quarter/2);
       fill(0);
-      text(displayText, quarter, quarter + quarter/2) ;
+      float textHeight = determineFontSize(displayText, quarter, quarter/2);
+      textSize(textHeight);
+      float tWidth = textWidth(displayText);
+      float b = (half - tWidth)/2;
+      float a = (quarter/2 - textHeight)/2;
+      float px = quarter + b;
+      float py = quarter + a + textHeight;
+      text(displayText, px, py) ; //<>//
   }
 }
 
@@ -147,9 +154,9 @@ int[] colourpath(float along) {
   case 3:
     red = lower;
     green = upper + (lower - upper)*decimals;
-    blue = upper;
+    blue = upper; //<>// //<>// //<>//
     break;
-  case 4: //<>//
+  case 4: 
     red = lower + (upper - lower)*decimals;
     green = lower;
     blue = upper;
@@ -165,41 +172,47 @@ int[] colourpath(float along) {
 
   return_colours[0] = round(red);
   return_colours[1] = round(green);
-  return_colours[2] = round(blue);
+  return_colours[2] = round(blue); //<>// //<>// //<>//
   return return_colours;
-} //<>//
-//<>//
+} 
+
+float determineFontSize(String inputText, float targetWidth, float maxHeightSize){
+  float currentWidth = textWidth(inputText);
+  float maxWidthSize = 25*(targetWidth/currentWidth); //<>//
+  return max(min(maxWidthSize, maxHeightSize), 10); //<>//
+}
+
 void drawLabels(float half, float angle, float angle2, float almost, int segnum) {
   float text_angle = 2*PI/segnum;
-  translate(half, half);
+  translate(half, half); //<>//
   rotate(angle/2+ angle2);
-  for (int i=0; i< segments.length; i++) { //<>// //<>//
+  for (int i=0; i< segments.length; i++) {  
     fill(0);
     rotate(angle);
     textSize(25);
-    float currentWidth = textWidth(segments[i]);
-    float targetWidth = almost/2 - 150;
-    float maxWidthSize = 25*(targetWidth/currentWidth);
+    //float currentWidth = textWidth();
+    float targetWidth = almost/2 - 150; //<>//
+    // float maxWidthSize = 25*(targetWidth/currentWidth); //<>//
     float maxHeightSize = tan(text_angle/2)*100;
-    float newSize = max(min(maxWidthSize, maxHeightSize), 10);
+    float newSize = determineFontSize(segments[i], targetWidth, maxHeightSize);
     if (newSize<10) {
       //segments[i] = segments[i].substring(0, min(40, segments[i].length()));
-      newSize = 10;
+      newSize = 10; //<>//
     }
-    textSize(newSize); //<>//
+    textSize(newSize); 
     float adjustAngle = asin(newSize/(almost/2));
     rotate(adjustAngle);
     text(segments[i], 100, 0);
     rotate(-adjustAngle);
-  }
-  rotate(-angle/2 - angle2);
+  } //<>//
+  rotate(-angle/2 - angle2); //<>//
   translate(-half, -half);
 }
 
 void drawSegments(float half, float almost, float angle, float angle2) {
-  for (int i=0; i< segments.length; i++) {
+  for (int i=0; i< segments.length; i++) { //<>//
     //println(segments[i]);
-    float along = float(i)/segments.length; //<>//
+    float along = float(i)/segments.length; 
     int[] rgb = colourpath(along);
     int red = rgb[0];
     int green = rgb[1];
