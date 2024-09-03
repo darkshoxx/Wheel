@@ -52,6 +52,14 @@ void setup() {
   }
 
   try {
+   tick = new SoundFile(this, path + "\\" + configs[2]);
+  }
+  catch (java.lang.NullPointerException e) {
+    println("no soundfile found");
+    tick = null;
+  }
+
+  try {
     segments = loadStrings(path +"\\" + configs[1]);
   }
   catch (java.lang.NullPointerException e) {
@@ -116,7 +124,9 @@ void draw() {
   drawLabels(half, angle, angle2, almost, segnum);
 
   if (newSegment) {
+    if (tick != null){
     tick.play();
+    }
   }
 
   // draw centerpiece

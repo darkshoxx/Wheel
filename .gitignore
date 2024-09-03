@@ -11,3 +11,6 @@ out
 WheelV1/windows-amd64/
 WheelV1/libraries/
 WheelV1/*.autosave
+WheelV1/LinuxWheelRelease.zip
+WheelV1/WindowsWheelRelease.zip
+WheelV1/linux-amd64/
