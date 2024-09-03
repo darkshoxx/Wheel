@@ -5,6 +5,8 @@ float angle2 = random(0, 2*PI);
 float angle3 = 0;
 boolean showresult = false;
 String displayText="";
+String emptyText = "";
+String placeholderText="";
 import processing.sound.*;
 SoundFile tick;
 
@@ -99,9 +101,9 @@ void draw() {
   fill(200);
   triangle(full - 2*c_rad, half, almost+boundary/2, half - c_rad, almost+boundary/2, half + c_rad);
   if (showresult){
-      rect(quarter, quarter, half, quarter/2);
+      rect(quarter-5, quarter, half+10, quarter/2);
       fill(0);
-      float textHeight = determineFontSize(displayText, quarter, quarter/2);
+      float textHeight = determineFontSize(displayText, half, quarter/2);
       textSize(textHeight);
       float tWidth = textWidth(displayText);
       float b = (half - tWidth)/2;
@@ -109,13 +111,12 @@ void draw() {
       float px = quarter + b;
       float py = quarter + a + textHeight;
       if ((millis()%1000)>500 ){
-      fill(50);
+      placeholderText = displayText;
       } else {
-      fill(200);
+      placeholderText = emptyText;
       }
-      text(displayText, px, py) ; //<>//
+      text(placeholderText, px, py) ; //<>//
       noFill();
-      rect(quarter, quarter, half, quarter/2);
   }
 }
 
@@ -184,6 +185,7 @@ int[] colourpath(float along) {
 } 
 
 float determineFontSize(String inputText, float targetWidth, float maxHeightSize){
+  textSize(25);
   float currentWidth = textWidth(inputText);
   float maxWidthSize = 25*(targetWidth/currentWidth); //<>//
   return max(min(maxWidthSize, maxHeightSize), 10); //<>//
@@ -196,7 +198,7 @@ void drawLabels(float half, float angle, float angle2, float almost, int segnum)
   for (int i=0; i< segments.length; i++) {  
     fill(0);
     rotate(angle);
-    textSize(25);
+
     //float currentWidth = textWidth();
     float targetWidth = almost/2 - 150; //<>//
     // float maxWidthSize = 25*(targetWidth/currentWidth); //<>//
