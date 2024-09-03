@@ -9,7 +9,6 @@ If that same folder has a "center1.png", it will be a centerstone of the wheel.
 I *think* the wheel is currently fair, but would not guarantee it.  
 
 TODO:
-- result flashing
 - Special cases for 2 and 3 segments
 - Make Paths easier
 - Allow for images on segments

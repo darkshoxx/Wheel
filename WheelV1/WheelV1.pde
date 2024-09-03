@@ -108,7 +108,14 @@ void draw() {
       float a = (quarter/2 - textHeight)/2;
       float px = quarter + b;
       float py = quarter + a + textHeight;
+      if ((millis()%1000)>500 ){
+      fill(50);
+      } else {
+      fill(200);
+      }
       text(displayText, px, py) ; //<>//
+      noFill();
+      rect(quarter, quarter, half, quarter/2);
   }
 }
 
