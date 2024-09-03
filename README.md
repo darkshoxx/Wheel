@@ -2,16 +2,22 @@ Wheel of fortune -like application written in Processing
 
 Will attempt to make releases.  
 
-For now, make sure to have the segments in a textfile called "segments.txt" located in "C:\\code\\processing-4.  3\\Wheel\\", that is sadly currently hardcoded.  
+Instructions:  
+1. Download the latest Release  
+2. Download the SDK from the first release, extract into same folder as the executable  
+3. Create file "config.txt" in same folder
+4. the configfile should have four lines (for defaults see config.txt in repo): 
+    - absolute path of data
+    - name of segments file in data folder
+    - name of click file
+    - name of centerpiece
 
-If that same folder has a "center1.png", it will be a centerstone of the wheel.  
-
-I *think* the wheel is currently fair, but would not guarantee it.  
+The wheel is currently fair to an angle of about 2 degrees i.e. the first segment has a 2/360 higher chance than the others.  
 
 TODO:
 - make textbox prettier
-- Make Paths easier
 - Allow for images on segments
 - Config prompt ?
 - custom colours
 - make build easier
+- refactor file loading

@@ -1,0 +1,3 @@
+C:\\code\\GithubRepos\\Wheel\\
+click_short.wav
+center1.png

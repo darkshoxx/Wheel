@@ -1,4 +1,4 @@
-PImage centerpiece;   //<>// //<>// //<>// //<>//
+PImage centerpiece;   //<>// //<>// //<>// //<>// //<>//
 String path;
 String[] segments;
 float angle2 = random(0, 2*PI);
@@ -8,15 +8,43 @@ String displayText="";
 String emptyText = "";
 String placeholderText="";
 import processing.sound.*;
+import java.io.File;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+
 SoundFile tick;
+
+void exitWithMessage(String message) {
+  JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
+  println(message);
+  System.exit(0);
+}
 
 void setup() {
   background(255);
   size(800, 800);
-  path = "C:\\code\\GithubRepos\\Wheel\\";
-  tick = new SoundFile(this, path + "click_short.wav");
+  String configfile = "config.txt";
+  File fileObject = new File(configfile);
+  if (!fileObject.exists()) {
+    JFileChooser chooser = new JFileChooser();
+    chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+    if ( chooser.showOpenDialog(null) != JFileChooser.APPROVE_OPTION) {
+      exitWithMessage("No path selected, terminating!");
+    }
+    configfile = chooser.getSelectedFile().getAbsolutePath()+"\\config.txt";
+    println(configfile);
+    fileObject = new File(configfile);
+    if (!fileObject.exists()) {
+      exitWithMessage("Path does not contain config file! Terminating!");
+      //String mypath = JOptionPane.showInputDialog("yadaya");
+    }
+  }
+
+  String[] configs = loadStrings(configfile);
+  path = configs[0];
+  tick = new SoundFile(this, path + "\\" + configs[2]);
   try {
-    centerpiece = loadImage(path + "center1.png");
+    centerpiece = loadImage(path +"\\" + configs[3]);
   }
   catch (java.lang.NullPointerException e) {
     println("no image found");
@@ -24,10 +52,10 @@ void setup() {
   }
 
   try {
-    segments = loadStrings(path + "segments.txt");
+    segments = loadStrings(path +"\\" + configs[1]);
   }
   catch (java.lang.NullPointerException e) {
-    println("no image found");
+    println("no segments found");
     segments = null;
   }
 }
@@ -100,23 +128,23 @@ void draw() {
   // draw triangle
   fill(200);
   triangle(full - 2*c_rad, half, almost+boundary/2, half - c_rad, almost+boundary/2, half + c_rad);
-  if (showresult){
-      rect(quarter-5, quarter, half+10, quarter/2);
-      fill(0);
-      float textHeight = determineFontSize(displayText, half, quarter/2);
-      textSize(textHeight);
-      float tWidth = textWidth(displayText);
-      float b = (half - tWidth)/2;
-      float a = (quarter/2 - textHeight)/2;
-      float px = quarter + b;
-      float py = quarter + a + textHeight;
-      if ((millis()%1000)>500 ){
+  if (showresult) {
+    rect(quarter-5, quarter, half+10, quarter/2);
+    fill(0);
+    float textHeight = determineFontSize(displayText, half, quarter/2);
+    textSize(textHeight);
+    float tWidth = textWidth(displayText);
+    float b = (half - tWidth)/2;
+    float a = (quarter/2 - textHeight)/2;
+    float px = quarter + b;
+    float py = quarter + a + textHeight;
+    if ((millis()%1000)>500 ) {
       placeholderText = displayText;
-      } else {
+    } else {
       placeholderText = emptyText;
-      }
-      text(placeholderText, px, py) ; //<>//
-      noFill();
+    }
+    text(placeholderText, px, py) ;
+    noFill();
   }
 }
 
@@ -164,7 +192,7 @@ int[] colourpath(float along) {
     green = upper + (lower - upper)*decimals;
     blue = upper; //<>// //<>// //<>//
     break;
-  case 4: 
+  case 4:
     red = lower + (upper - lower)*decimals;
     green = lower;
     blue = upper;
@@ -182,9 +210,9 @@ int[] colourpath(float along) {
   return_colours[1] = round(green);
   return_colours[2] = round(blue); //<>// //<>// //<>//
   return return_colours;
-} 
+}
 
-float determineFontSize(String inputText, float targetWidth, float maxHeightSize){
+float determineFontSize(String inputText, float targetWidth, float maxHeightSize) {
   textSize(25);
   float currentWidth = textWidth(inputText);
   float maxWidthSize = 25*(targetWidth/currentWidth); //<>//
@@ -195,7 +223,7 @@ void drawLabels(float half, float angle, float angle2, float almost, int segnum)
   float text_angle = 2*PI/segnum;
   translate(half, half); //<>//
   rotate(angle/2+ angle2);
-  for (int i=0; i< segments.length; i++) {  
+  for (int i=0; i< segments.length; i++) {
     fill(0);
     rotate(angle);
 
@@ -203,19 +231,19 @@ void drawLabels(float half, float angle, float angle2, float almost, int segnum)
     float targetWidth = almost/2 - 150; //<>//
     // float maxWidthSize = 25*(targetWidth/currentWidth); //<>//
     float maxHeightSize = 0;
-    if (segnum == 2){
-    maxHeightSize = 100;
+    if (segnum == 2) {
+      maxHeightSize = 100;
     } else {
-    maxHeightSize = tan(text_angle/2)*100;    
+      maxHeightSize = tan(text_angle/2)*100;
     }
-    
+
 
     float newSize = determineFontSize(segments[i], targetWidth, maxHeightSize);
     if (newSize<10) {
       //segments[i] = segments[i].substring(0, min(40, segments[i].length()));
       newSize = 10; //<>//
     }
-    textSize(newSize); 
+    textSize(newSize);
     float adjustAngle = asin(newSize/(almost/2));
     rotate(adjustAngle);
     text(segments[i], 100, 0);
@@ -228,7 +256,7 @@ void drawLabels(float half, float angle, float angle2, float almost, int segnum)
 void drawSegments(float half, float almost, float angle, float angle2) {
   for (int i=0; i< segments.length; i++) { //<>//
     //println(segments[i]);
-    float along = float(i)/segments.length; 
+    float along = float(i)/segments.length;
     int[] rgb = colourpath(along);
     int red = rgb[0];
     int green = rgb[1];
