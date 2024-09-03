@@ -202,7 +202,14 @@ void drawLabels(float half, float angle, float angle2, float almost, int segnum)
     //float currentWidth = textWidth();
     float targetWidth = almost/2 - 150; //<>//
     // float maxWidthSize = 25*(targetWidth/currentWidth); //<>//
-    float maxHeightSize = tan(text_angle/2)*100;
+    float maxHeightSize = 0;
+    if (segnum == 2){
+    maxHeightSize = 100;
+    } else {
+    maxHeightSize = tan(text_angle/2)*100;    
+    }
+    
+
     float newSize = determineFontSize(segments[i], targetWidth, maxHeightSize);
     if (newSize<10) {
       //segments[i] = segments[i].substring(0, min(40, segments[i].length()));

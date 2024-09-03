@@ -10,7 +10,6 @@ I *think* the wheel is currently fair, but would not guarantee it.
 
 TODO:
 - make textbox prettier
-- Special cases for 2 segments
 - Make Paths easier
 - Allow for images on segments
 - Config prompt ?
