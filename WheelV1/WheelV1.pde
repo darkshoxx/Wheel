@@ -4,9 +4,14 @@ String[] segments;
 float angle2 = random(0, 2*PI);
 float angle3 = 0;
 boolean showresult = false;
+boolean isPressed = false;
 String displayText="";
 String emptyText = "";
 String placeholderText="";
+String myDefaultPathWin = "C:/Code/GithubRepos/Wheel/WheelV1";
+String myDefaultPathLin = "/mnt/c/Code/GithubRepos/Wheel/";
+int centerpieceYOffset = 0;
+long timestamp = 0;
 import processing.sound.*;
 import java.io.File;
 import javax.swing.JFileChooser;
@@ -26,12 +31,15 @@ void setup() {
   String configfile = "config.txt";
   File fileObject = new File(configfile);
   if (!fileObject.exists()) {
-    JFileChooser chooser = new JFileChooser();
-    chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+    JFileChooser chooser = new JFileChooser(myDefaultPathWin);
+    chooser.setDialogTitle("Please select config.txt");
+    //chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
     if ( chooser.showOpenDialog(null) != JFileChooser.APPROVE_OPTION) {
       exitWithMessage("No path selected, terminating!");
     }
-    configfile = chooser.getSelectedFile().getAbsolutePath()+"\\config.txt";
+    //configfile = chooser.getSelectedFile().getAbsolutePath()+"/config.txt";
+
+    configfile = chooser.getSelectedFile().getAbsolutePath();
     println(configfile);
     fileObject = new File(configfile);
     if (!fileObject.exists()) {
@@ -42,9 +50,9 @@ void setup() {
 
   String[] configs = loadStrings(configfile);
   path = configs[0];
-  tick = new SoundFile(this, path + "\\" + configs[2]);
+  //tick = new SoundFile(this, path + "/" + configs[2]);
   try {
-    centerpiece = loadImage(path +"\\" + configs[3]);
+    centerpiece = loadImage(path +"/" + configs[3]);
   }
   catch (java.lang.NullPointerException e) {
     println("no image found");
@@ -52,15 +60,19 @@ void setup() {
   }
 
   try {
-   tick = new SoundFile(this, path + "\\" + configs[2]);
+   tick = new SoundFile(this, path + "/" + configs[2]);
   }
   catch (java.lang.NullPointerException e) {
     println("no soundfile found");
     tick = null;
   }
+  catch(java.lang.RuntimeException e){
+    println("soundfile error");
+    tick = null; 
+  }
 
   try {
-    segments = loadStrings(path +"\\" + configs[1]);
+    segments = loadStrings(path +"/" + configs[1]);
   }
   catch (java.lang.NullPointerException e) {
     println("no segments found");
@@ -131,7 +143,11 @@ void draw() {
 
   // draw centerpiece
   if (centerpiece != null) {
-    image(centerpiece, half - c_rad, half - c_rad, 2*c_rad, 2*c_rad);
+    centerpieceYOffset = 0;
+    if (timestamp + 100 > System.currentTimeMillis() ) { 
+    centerpieceYOffset = 10;
+    }
+    image(centerpiece, half - c_rad, half - c_rad + centerpieceYOffset, 2*c_rad, 2*c_rad);
   } else {
     ellipse(half, half, 2*c_rad, 2*c_rad);
   }
@@ -280,6 +296,9 @@ void drawSegments(float half, float almost, float angle, float angle2) {
 void mouseClicked() {
   if (abs(mouseX-height/2)<25 & abs(mouseY-height/2)<25 ) {
     showresult = false;
+    isPressed = true;
+    timestamp = System.currentTimeMillis() ;
+    println(timestamp);
     float denominator =random(23.99, 31.65); // these values represent 3 and 4 complete spins of the wheel. Hence the sample is "fair enough" between the entire range.
     angle3 = 2*PI/denominator;
   }

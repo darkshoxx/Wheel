@@ -1,0 +1,4 @@
+/mnt/c/Code/GithubRepos/Wheel/
+segments.txt
+
+center1.png
