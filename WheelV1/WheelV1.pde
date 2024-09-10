@@ -1,4 +1,4 @@
-PImage centerpiece;   //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>//
+PImage centerpiece;   //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>//
 PImage[] images;
 String path;
 String[] imagestrings;
@@ -64,13 +64,13 @@ void setup() {
 
   try {
     imagestrings = loadStrings(path +"/" + configs[5]);
-    PImage[] images = new PImage[imagestrings.length];
+    images = new PImage[imagestrings.length];
 
     for (int i=0; i<imagestrings.length; i++) {
       try {
 
         String tempImagePath =  path + "/" + imagestrings[i];
-        PImage tempImageObj = loadImage(tempImagePath);
+        PImage tempImageObj = loadImage(tempImagePath); //<>//
         tempImageObj.resize(width, height);
         images[i] = tempImageObj;
       }
@@ -340,8 +340,8 @@ void drawLabels(float half, float angle, float angle2, float almost, int segnum)
 void drawSegments(float half, float almost, float angle, float angle2) {
   for (int i=0; i< segments.length; i++) {
     //println(segments[i]);
-    if (colours != null) {
-      int fixedindex = ((i+5)%6);
+    if (colours != null) { //<>//
+      int fixedindex = ((i+5)%segments.length);
       color inbetween = get_second_colour_from_line(colours[fixedindex]);
       fill(inbetween);
     } else {
@@ -354,13 +354,14 @@ void drawSegments(float half, float almost, float angle, float angle2) {
     }
     if (images != null) {
       PGraphics maskImage;
+      int fixedindex = ((i+5)%segments.length);
       maskImage = createGraphics(width, width);
       maskImage.beginDraw();
       maskImage.arc(half, half, almost-10, almost-10, i*angle + angle2, (i+1)*angle + angle2 );
       maskImage.endDraw();
-      images[i].mask(maskImage);
-      image(images[i], 0, 0);
-    } else {
+      images[fixedindex].mask(maskImage);
+      image(images[fixedindex], 0, 0);
+    } else { //<>//
       arc(half, half, almost-10, almost-10, i*angle + angle2, (i+1)*angle + angle2 );
     }
   }
