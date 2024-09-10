@@ -1,5 +1,6 @@
-1
-S2
-Seg3
-Segment4
-This is Segment 5
+1 RED on CYAN
+2 GREEN on MAGENTA
+3 BLUE on YELLOW
+4 CYAN on RED
+5 MAGENTA on GREEN
+6 YELLOW on BLUE

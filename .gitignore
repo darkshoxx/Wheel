@@ -14,3 +14,5 @@ WheelV1/*.autosave
 WheelV1/LinuxWheelRelease.zip
 WheelV1/WindowsWheelRelease.zip
 WheelV1/linux-amd64/
+WheelV1/Linux_v*.zip
+WheelV1/Win_v*.zip

@@ -2,3 +2,5 @@ C:/code/GithubRepos/Wheel
 segments.txt
 click_short.wav
 center1.png
+colours.txt
+images.txt

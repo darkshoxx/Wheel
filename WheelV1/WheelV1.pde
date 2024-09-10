@@ -1,6 +1,9 @@
-PImage centerpiece;   //<>// //<>// //<>// //<>// //<>//
+PImage centerpiece;   //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>//
+PImage[] images;
 String path;
+String[] imagestrings;
 String[] segments;
+String[] colours;
 float angle2 = random(0, 2*PI);
 float angle3 = 0;
 boolean showresult = false;
@@ -60,15 +63,44 @@ void setup() {
   }
 
   try {
-   tick = new SoundFile(this, path + "/" + configs[2]);
+    imagestrings = loadStrings(path +"/" + configs[5]);
+    PImage[] images = new PImage[imagestrings.length];
+
+    for (int i=0; i<imagestrings.length; i++) {
+      try {
+
+        String tempImagePath =  path + "/" + imagestrings[i];
+        PImage tempImageObj = loadImage(tempImagePath);
+        tempImageObj.resize(width, height);
+        images[i] = tempImageObj;
+      }
+
+      catch (java.lang.NullPointerException e) {
+        println("no images found");
+        images[i] = null;
+      }
+    }
+  }
+
+
+
+  catch (java.lang.NullPointerException e) {
+    println("no image file found");
+    imagestrings = null;
+  }
+
+
+
+  try {
+    tick = new SoundFile(this, path + "/" + configs[2]);
   }
   catch (java.lang.NullPointerException e) {
     println("no soundfile found");
     tick = null;
   }
-  catch(java.lang.RuntimeException e){
+  catch(java.lang.RuntimeException e) {
     println("soundfile error");
-    tick = null; 
+    tick = null;
   }
 
   try {
@@ -78,6 +110,32 @@ void setup() {
     println("no segments found");
     segments = null;
   }
+
+  try {
+    colours = loadStrings(path +"/" + configs[4]);
+  }
+  catch (java.lang.NullPointerException e) {
+    println("no colours found");
+    colours = null;
+  }
+}
+
+color get_first_colour_from_line(String colourline) {
+  int len = colourline.length();
+  if (len>6) {
+    return unhex("FF" + colourline.substring(1, 7));
+  }
+  println("Could not get colour");
+  return unhex("FF000000");
+}
+
+color get_second_colour_from_line(String colourline) {
+  int len = colourline.length();
+  if (len>14) {
+    return unhex("FF" + colourline.substring(9, 15));
+  }
+  println("Could not get colour");
+  return unhex("FF000000");
 }
 
 void draw() {
@@ -136,16 +194,16 @@ void draw() {
   drawLabels(half, angle, angle2, almost, segnum);
 
   if (newSegment) {
-    if (tick != null){
-    tick.play();
+    if (tick != null) {
+      tick.play();
     }
   }
 
   // draw centerpiece
   if (centerpiece != null) {
     centerpieceYOffset = 0;
-    if (timestamp + 100 > System.currentTimeMillis() ) { 
-    centerpieceYOffset = 10;
+    if (timestamp + 100 > System.currentTimeMillis() ) {
+      centerpieceYOffset = 10;
     }
     image(centerpiece, half - c_rad, half - c_rad + centerpieceYOffset, 2*c_rad, 2*c_rad);
   } else {
@@ -216,7 +274,7 @@ int[] colourpath(float along) {
   case 3:
     red = lower;
     green = upper + (lower - upper)*decimals;
-    blue = upper; //<>// //<>// //<>//
+    blue = upper; //<>// //<>//
     break;
   case 4:
     red = lower + (upper - lower)*decimals;
@@ -234,28 +292,28 @@ int[] colourpath(float along) {
 
   return_colours[0] = round(red);
   return_colours[1] = round(green);
-  return_colours[2] = round(blue); //<>// //<>// //<>//
+  return_colours[2] = round(blue); //<>// //<>//
   return return_colours;
 }
 
 float determineFontSize(String inputText, float targetWidth, float maxHeightSize) {
   textSize(25);
   float currentWidth = textWidth(inputText);
-  float maxWidthSize = 25*(targetWidth/currentWidth); //<>//
-  return max(min(maxWidthSize, maxHeightSize), 10); //<>//
+  float maxWidthSize = 25*(targetWidth/currentWidth);
+  return max(min(maxWidthSize, maxHeightSize), 10);
 }
 
 void drawLabels(float half, float angle, float angle2, float almost, int segnum) {
   float text_angle = 2*PI/segnum;
-  translate(half, half); //<>//
+  translate(half, half);
   rotate(angle/2+ angle2);
   for (int i=0; i< segments.length; i++) {
-    fill(0);
+    fill(get_first_colour_from_line(colours[i]));
     rotate(angle);
 
     //float currentWidth = textWidth();
-    float targetWidth = almost/2 - 150; //<>//
-    // float maxWidthSize = 25*(targetWidth/currentWidth); //<>//
+    float targetWidth = almost/2 - 150;
+    // float maxWidthSize = 25*(targetWidth/currentWidth);
     float maxHeightSize = 0;
     if (segnum == 2) {
       maxHeightSize = 100;
@@ -267,29 +325,44 @@ void drawLabels(float half, float angle, float angle2, float almost, int segnum)
     float newSize = determineFontSize(segments[i], targetWidth, maxHeightSize);
     if (newSize<10) {
       //segments[i] = segments[i].substring(0, min(40, segments[i].length()));
-      newSize = 10; //<>//
+      newSize = 10;
     }
     textSize(newSize);
     float adjustAngle = asin(newSize/(almost/2));
     rotate(adjustAngle);
     text(segments[i], 100, 0);
     rotate(-adjustAngle);
-  } //<>//
-  rotate(-angle/2 - angle2); //<>//
+  }
+  rotate(-angle/2 - angle2);
   translate(-half, -half);
 }
 
 void drawSegments(float half, float almost, float angle, float angle2) {
-  for (int i=0; i< segments.length; i++) { //<>//
+  for (int i=0; i< segments.length; i++) {
     //println(segments[i]);
-    float along = float(i)/segments.length;
-    int[] rgb = colourpath(along);
-    int red = rgb[0];
-    int green = rgb[1];
-    int blue = rgb[2];
-    fill(red, green, blue);
-
-    arc(half, half, almost-10, almost-10, i*angle + angle2, (i+1)*angle + angle2 );
+    if (colours != null) {
+      int fixedindex = ((i+5)%6);
+      color inbetween = get_second_colour_from_line(colours[fixedindex]);
+      fill(inbetween);
+    } else {
+      float along = float(i)/segments.length;
+      int[] rgb = colourpath(along);
+      int red = rgb[0];
+      int green = rgb[1];
+      int blue = rgb[2];
+      fill(red, green, blue);
+    }
+    if (images != null) {
+      PGraphics maskImage;
+      maskImage = createGraphics(width, width);
+      maskImage.beginDraw();
+      maskImage.arc(half, half, almost-10, almost-10, i*angle + angle2, (i+1)*angle + angle2 );
+      maskImage.endDraw();
+      images[i].mask(maskImage);
+      image(images[i], 0, 0);
+    } else {
+      arc(half, half, almost-10, almost-10, i*angle + angle2, (i+1)*angle + angle2 );
+    }
   }
 }
 
