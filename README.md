@@ -31,3 +31,6 @@ TODO:
 - make textbox prettier
 - make build easier
 - refactor file loading
+- add javadoc
+- general refactor
+- implement: if not enough information: loop over previous
