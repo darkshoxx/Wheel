@@ -354,11 +354,11 @@ void drawLabels(float half, float angle, float angle2, float almost, int segnum)
   rotate(angle/2+ angle2);
   for (int i=0; i< segments.length; i++) {
     // get font colour 
+    color fontColour = 0;
+    color fontColour2 = 0;
     if (colours != null){
-    fill(get_first_colour_from_line(colours[i]));
-    } else {
-    //default font colour: black
-    fill(0);
+    fontColour = get_first_colour_from_line(colours[i%colours.length]);
+    fontColour2 = get_second_colour_from_line(colours[i%colours.length]);
     }
     rotate(angle);
     // inital estimates on font size, requried for helper function
@@ -380,7 +380,8 @@ void drawLabels(float half, float angle, float angle2, float almost, int segnum)
     // rotate font in each segments
     float adjustAngle = asin(newSize/(almost/2));
     rotate(adjustAngle);
-    text(segments[i], 100, 0);
+    strokeText(segments[i], 100, 0, 0, fontColour, newSize);
+    // strokeText(segments[i], 100, 0, fontColour2, fontColour); // optional: choose font border yourself
     // rotate back to origin for next segment
     rotate(-adjustAngle);
   }
@@ -404,7 +405,7 @@ void drawSegments(float half, float almost, float angle, float angle2) {
       // I somehow messed up the index further down, so I'm hiding the crimes in this 
       // fixedindex variable
       int fixedindex = ((i+segments.length - 1)%segments.length);
-      color inbetween = get_second_colour_from_line(colours[fixedindex]);
+      color inbetween = get_second_colour_from_line(colours[fixedindex%colours.length]);
       fill(inbetween);
     } else {
       // no background colours: follow colour wheel
@@ -424,13 +425,26 @@ void drawSegments(float half, float almost, float angle, float angle2) {
       maskImage.beginDraw();
       maskImage.arc(half, half, almost-10, almost-10, i*angle + angle2, (i+1)*angle + angle2 );
       maskImage.endDraw();
-      images[fixedindex].mask(maskImage);
-      image(images[fixedindex], 0, 0);
+      PImage currentImage = images[fixedindex%images.length];
+      currentImage.mask(maskImage);
+      image(currentImage, 0, 0);
     } else { //<>//
       arc(half, half, almost-10, almost-10, i*angle + angle2, (i+1)*angle + angle2 );
     }
   }
 }
+
+void strokeText(String message, int x, int y, color c1, color c2, float fontsize)
+{
+  float thickness = fontsize/25;
+  fill(c1);
+  text(message, x-thickness, y);
+  text(message, x, y-thickness);
+  text(message, x+thickness, y);
+  text(message, x, y+thickness);
+  fill(c2);
+  text(message, x, y);
+} 
 
 void mouseClicked() {
   // TODO: for some reason, sometimes clicks are not registered.
