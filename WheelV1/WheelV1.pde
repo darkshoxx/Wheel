@@ -1,4 +1,4 @@
-PImage centerpiece; // object to hold centerpiece image //<>//
+PImage centerpiece; // object to hold centerpiece image //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>//
 PImage[] images;    // array to hold segment images
 String path;        // base path of text files, images and sounds
 String[] imagestrings;  // array of filenames of segment background images
@@ -25,11 +25,57 @@ import javax.swing.JOptionPane;
 
 SoundFile tick;  // object to carry tick sound.
 
+// File loaders and Error Handlers
+
 void exitWithMessage(String message) {
   JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
   println(message);
   System.exit(0);
 }
+
+PImage safeLoadImage(String path, String errorMessage, boolean stretch) {
+  try {
+    PImage loadedImage = loadImage(path);
+    if (stretch) {
+      loadedImage.resize(width, height);
+    }
+    return loadedImage;
+  }
+  catch(java.lang.NullPointerException e) {
+    println(errorMessage);
+    return null;
+  }
+}
+
+
+String[] safeLoadStrings(String path, String errorMessage) {
+  try {
+    return loadStrings(path);
+  }
+  catch(java.lang.NullPointerException e) {
+    println(errorMessage);
+    return null;
+  }
+}
+
+SoundFile safeLoadSoundFile(String path, String errorMessage) { //<>//
+
+  try {
+    tick = new SoundFile(this, path);
+    tick.play();
+    return tick;
+  }
+  catch(java.lang.NullPointerException e) {
+    println(errorMessage);
+    return null;
+  }
+  catch(java.lang.RuntimeException e) {
+    println("The soundfile was found but could not be loaded!");
+    return null;
+  }
+}
+
+
 
 void setup() {
   background(255);
@@ -51,80 +97,38 @@ void setup() {
     }
   }
 
+
+
   String[] configs = loadStrings(configfile);
   path = configs[0];
-  try {
-    centerpiece = loadImage(path +"/" + configs[3]);
-  }
-  catch (java.lang.NullPointerException e) {
-    println("no image found");
-    centerpiece = null;
-  }
 
-  try {
-    imagestrings = loadStrings(path +"/" + configs[5]);
+
+  centerpiece = safeLoadImage(path +"/" + configs[3], "No centerpiece image found", false);
+
+
+  imagestrings = safeLoadStrings(path +"/" + configs[5], "No image file found");
+  if (imagestrings != null) {
     images = new PImage[imagestrings.length];
 
     for (int i=0; i<imagestrings.length; i++) {
-      try {
 
-        String tempImagePath =  path + "/" + imagestrings[i];
-        PImage tempImageObj = loadImage(tempImagePath); //<>//
-        tempImageObj.resize(width, height);
-        images[i] = tempImageObj;
-      }
-
-      catch (java.lang.NullPointerException e) {
-        println("no images found");
-        images[i] = null;
-      }
+      images[i] = safeLoadImage(path + "/" + imagestrings[i], "Segment image file not found", true);
     }
   }
 
+  tick = safeLoadSoundFile(path + "/" + configs[2], "No soundfile found");
 
+  segments = safeLoadStrings(path +"/" + configs[1], "no segments found");
 
-  catch (java.lang.NullPointerException e) {
-    println("no image file found");
-    imagestrings = null;
-  }
-
-
-
-  try {
-    tick = new SoundFile(this, path + "/" + configs[2]);
-  }
-  catch (java.lang.NullPointerException e) {
-    println("no soundfile found");
-    tick = null;
-  }
-  catch(java.lang.RuntimeException e) {
-    println("soundfile error");
-    tick = null;
-  }
-
-  try {
-    segments = loadStrings(path +"/" + configs[1]);
-  }
-  catch (java.lang.NullPointerException e) {
-    println("no segments found");
-    segments = null;
-  }
-
-  try {
-    colours = loadStrings(path +"/" + configs[4]);
-  }
-  catch (java.lang.NullPointerException e) {
-    println("no colours found");
-    colours = null;
-  }
+  colours = safeLoadStrings(path +"/" + configs[4], "no colours found");
 }
 
 /**
-* Parses a line of the colour file to return the first colour
-*
-* @param  colourline   the line to be parsed
-* @return              the first colour object
-*/
+ * Parses a line of the colour file to return the first colour
+ *
+ * @param  colourline   the line to be parsed
+ * @return              the first colour object
+ */
 color get_first_colour_from_line(String colourline) {
   int len = colourline.length();
   if (len>6) {
@@ -135,11 +139,11 @@ color get_first_colour_from_line(String colourline) {
 }
 
 /**
-* Parses a line of the colour file to return the second colour
-*
-* @param  colourline   the line to be parsed
-* @return              the second colour object
-*/
+ * Parses a line of the colour file to return the second colour
+ *
+ * @param  colourline   the line to be parsed
+ * @return              the second colour object
+ */
 color get_second_colour_from_line(String colourline) {
   int len = colourline.length();
   if (len>14) {
@@ -162,7 +166,7 @@ void draw() {
   }
   // decrease rate of wheel. 0.99 corresponds to exactly 3 to 4 rotations with the given
   // denominator values in the mouseClicked event. lower number means decrease faster.
-  var friction = 0.99; 
+  var friction = 0.99;
   // convenience variables
   int segnum = segments.length;
   float angle = 2*PI/segnum;
@@ -250,11 +254,11 @@ void draw() {
 }
 
 /**
-* Converts float between 0 and 1 to position on colour wheel
-*
-* @param  along   float between 0 and 1
-* @return         integer array of 3 colours (R,G,B) 
-*/
+ * Converts float between 0 and 1 to position on colour wheel
+ *
+ * @param  along   float between 0 and 1
+ * @return         integer array of 3 colours (R,G,B)
+ */
 int[] colourpath(float along) {
   int[] return_colours = new int[3];
   // default to black if wrong float is given
@@ -281,7 +285,7 @@ int[] colourpath(float along) {
   //5 101
   //6 100
 
-  // actual algorithm. In each of the six segments keep to colours constant and set the 
+  // actual algorithm. In each of the six segments keep to colours constant and set the
   // third to the opposit limit.
   switch(floor(along_six)) {
   case 0:
@@ -302,7 +306,7 @@ int[] colourpath(float along) {
   case 3:
     red = lower;
     green = upper + (lower - upper)*decimals;
-    blue = upper;  //<>//
+    blue = upper;
     break;
   case 4:
     red = lower + (upper - lower)*decimals;
@@ -318,19 +322,19 @@ int[] colourpath(float along) {
   // requires integers
   return_colours[0] = round(red);
   return_colours[1] = round(green);
-  return_colours[2] = round(blue);  //<>//
+  return_colours[2] = round(blue);
   return return_colours;
 }
 
 /**
-* Helper function to find the right font for  long text in a rectanlge. Used in both
-* segment labelling and result presentation.
-*
-* @param  inputText       string to be displayed
-* @param  targetWidth     maximal font width
-* @param  maxHeightSize   maximal font height
-* @return                 float as font size 
-*/
+ * Helper function to find the right font for  long text in a rectanlge. Used in both
+ * segment labelling and result presentation.
+ *
+ * @param  inputText       string to be displayed
+ * @param  targetWidth     maximal font width
+ * @param  maxHeightSize   maximal font height
+ * @return                 float as font size
+ */
 float determineFontSize(String inputText, float targetWidth, float maxHeightSize) {
   textSize(25);
   float currentWidth = textWidth(inputText);
@@ -339,26 +343,26 @@ float determineFontSize(String inputText, float targetWidth, float maxHeightSize
 }
 
 /**
-* Helper function draw the labels onto the segments
-*
-* @param  half     half screen size, required for translations
-* @param  angle    angle 1, see explanation at top of file
-* @param  angle2   angle 1, see explanation at top of file
-* @param  almost   size of wheel
-* @param  segnum   int, number of segments
-*/
+ * Helper function draw the labels onto the segments
+ *
+ * @param  half     half screen size, required for translations
+ * @param  angle    angle 1, see explanation at top of file
+ * @param  angle2   angle 1, see explanation at top of file
+ * @param  almost   size of wheel
+ * @param  segnum   int, number of segments
+ */
 void drawLabels(float half, float angle, float angle2, float almost, int segnum) {
   float text_angle = 2*PI/segnum;
   // center of rotation is center of wheel
   translate(half, half);
   rotate(angle/2+ angle2);
   for (int i=0; i< segments.length; i++) {
-    // get font colour 
+    // get font colour
     color fontColour = 0;
     color fontColour2 = 0;
-    if (colours != null){
-    fontColour = get_first_colour_from_line(colours[i%colours.length]);
-    fontColour2 = get_second_colour_from_line(colours[i%colours.length]);
+    if (colours != null) {
+      fontColour = get_first_colour_from_line(colours[i%colours.length]);
+      fontColour2 = get_second_colour_from_line(colours[i%colours.length]);
     }
     rotate(angle);
     // inital estimates on font size, requried for helper function
@@ -391,18 +395,18 @@ void drawLabels(float half, float angle, float angle2, float almost, int segnum)
 }
 
 /**
-* Helper function draw the segments
-*
-* @param  half     half screen size, required for translations
-* @param  angle    angle 1, see explanation at top of file
-* @param  angle2   angle 1, see explanation at top of file
-* @param  almost   size of wheel
-*/
+ * Helper function draw the segments
+ *
+ * @param  half     half screen size, required for translations
+ * @param  angle    angle 1, see explanation at top of file
+ * @param  angle2   angle 1, see explanation at top of file
+ * @param  almost   size of wheel
+ */
 void drawSegments(float half, float almost, float angle, float angle2) {
   for (int i=0; i< segments.length; i++) {
     // get segment bg colours if available
-    if (colours != null) { //<>//
-      // I somehow messed up the index further down, so I'm hiding the crimes in this 
+    if (colours != null) {
+      // I somehow messed up the index further down, so I'm hiding the crimes in this
       // fixedindex variable
       int fixedindex = ((i+segments.length - 1)%segments.length);
       color inbetween = get_second_colour_from_line(colours[fixedindex%colours.length]);
@@ -428,7 +432,7 @@ void drawSegments(float half, float almost, float angle, float angle2) {
       PImage currentImage = images[fixedindex%images.length];
       currentImage.mask(maskImage);
       image(currentImage, 0, 0);
-    } else { //<>//
+    } else {
       arc(half, half, almost-10, almost-10, i*angle + angle2, (i+1)*angle + angle2 );
     }
   }
@@ -444,7 +448,7 @@ void strokeText(String message, int x, int y, color c1, color c2, float fontsize
   text(message, x, y+thickness);
   fill(c2);
   text(message, x, y);
-} 
+}
 
 void mouseClicked() {
   // TODO: for some reason, sometimes clicks are not registered.
@@ -454,7 +458,7 @@ void mouseClicked() {
     isPressed = true;
     // required for measuring lenght of button press
     timestamp = System.currentTimeMillis();
-    float denominator = random(23.99, 31.65); 
+    float denominator = random(23.99, 31.65);
     // these values represent 3 and 4 complete spins of the wheel.
     // Hence the sample is "fair enough" between the entire range.
     angle3 = 2*PI/denominator;

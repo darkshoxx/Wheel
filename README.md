@@ -30,5 +30,4 @@ The wheel is currently fair to an angle of about 2 degrees i.e. the first segmen
 TODO:
 - make textbox prettier
 - make build easier
-- refactor file loading
 - general refactor
