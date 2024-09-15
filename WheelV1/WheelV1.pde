@@ -15,13 +15,17 @@ String myDefaultPathWin = "C:/Code/GithubRepos/Wheel/WheelV1";  //shoddy hack fo
 String myDefaultPathLin = "/mnt/c/Code/GithubRepos/Wheel/";     //shoddy hack for convenience
 int centerpieceYOffset = 0;  // button pressing depth
 long timestamp = 0;          // button pressing time
-
+int half;
+int quarter;
+int removalIndex;
 
 import processing.sound.*;
 import java.io.File;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import processing.net.*;
 
+Server server;   // server for external comms
 
 SoundFile tick;  // object to carry tick sound.
 
@@ -78,8 +82,12 @@ SoundFile safeLoadSoundFile(String path, String errorMessage) { //<>//
 
 
 void setup() {
-  background(255);
+  background(0,255,0);
   size(800, 800);
+  
+  // Start server for communcation with outside
+  server = new Server(this, 5000); 
+  
   String configfile = "config.txt";
   File fileObject = new File(configfile);
   if (!fileObject.exists()) {
@@ -134,7 +142,7 @@ color get_first_colour_from_line(String colourline) {
   if (len>6) {
     return unhex("FF" + colourline.substring(1, 7));
   }
-  println("Could not get colour");
+  //println("Could not get colour");
   return unhex("FF000000");
 }
 
@@ -149,11 +157,19 @@ color get_second_colour_from_line(String colourline) {
   if (len>14) {
     return unhex("FF" + colourline.substring(9, 15));
   }
-  println("Could not get colour");
+  //println("Could not get colour");
   return unhex("FF000000");
 }
 
 void draw() {
+  // Begin Server/Client communications
+  Client client = server.available();
+  if (client != null) {
+    String data = client.readString();
+    if (data.equals("Spin")) {
+      spinTheWheel();
+    }
+  }
   // If no segment file given, default to coin toss
   if (segments == null) {
     segments = new String[2];
@@ -182,7 +198,8 @@ void draw() {
   // on the last moments: Stop wheel, return result
   if (angle3<1e-7&angle3>0) {
     angle3 = 0;
-    displayText = segments[(segnum-1) - (ceil((angle2/angle)) % segnum)];
+    removalIndex = (segnum-1) - (ceil((angle2/angle)) % segnum);
+    displayText = segments[removalIndex];
     showresult = true;
   }
   // see top of file to see how angles work
@@ -233,6 +250,9 @@ void draw() {
   if (showresult) {
     // rect to display text
     rect(quarter-5, quarter, half+10, quarter/2);
+    // rect to display removal option
+    fill(200,0,0);
+    rect(quarter-5, half + quarter/2, half+10,  quarter/2);
     fill(0);
     // geometry calculations to ensure text fits in box
     float textHeight = determineFontSize(displayText, half, quarter/2);
@@ -249,6 +269,8 @@ void draw() {
       placeholderText = emptyText;
     }
     text(placeholderText, px, py) ;
+    textSize(50);
+    text("Remove Segment?",quarter+5,half+quarter-30);
     noFill();
   }
 }
@@ -450,9 +472,7 @@ void strokeText(String message, int x, int y, color c1, color c2, float fontsize
   text(message, x, y);
 }
 
-void mouseClicked() {
-  // TODO: for some reason, sometimes clicks are not registered.
-  if (abs(mouseX-height/2)<25 & abs(mouseY-height/2)<25 ) {
+void spinTheWheel(){
     // hide result when pressed
     showresult = false;
     isPressed = true;
@@ -462,5 +482,55 @@ void mouseClicked() {
     // these values represent 3 and 4 complete spins of the wheel.
     // Hence the sample is "fair enough" between the entire range.
     angle3 = 2*PI/denominator;
+}
+
+//void keyPressed(KeyEvent e){
+//if (e.isControlDown()  && e.isShiftDown() && e.isAltDown()) {
+//        spinTheWheel();
+//}
+//}
+
+
+
+PImage[] removeImage(PImage[] images, int index) {
+
+PImage[] newImages = new PImage[images.length-1];
+for (int i=0; i< images.length; i++) {
+  if (i < index){
+  newImages[i] = images[i];
   }
+  if (i> index){
+  newImages[i-1] = images[i];
+  }
+}
+return newImages;
+}
+
+
+String[] removeSegment(String[] segments, int index) {
+
+String[] newSegments = new String[segments.length-1];
+for (int i=0; i< segments.length; i++) {
+  if (i < index){
+  newSegments[i] = segments[i];
+  }
+  if (i> index){
+  newSegments[i-1] = segments[i];
+  }
+}
+return newSegments;
+}
+
+void mouseClicked() {
+  // TODO: for some reason, sometimes clicks are not registered.
+  if (abs(mouseX-height/2)<25 & abs(mouseY-height/2)<25 ) {
+    spinTheWheel();
+  }
+  half = height/2;
+  quarter = half/2;
+  if ((mouseX >quarter-5) & (mouseX < half+quarter+5) & (mouseY <half + quarter) & (mouseY >half + quarter - quarter/2)){
+  segments = removeSegment(segments, removalIndex);
+  images = removeImage(images, removalIndex);
+  }
+
 }
