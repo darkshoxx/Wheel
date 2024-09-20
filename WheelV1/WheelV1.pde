@@ -1,9 +1,12 @@
-PImage centerpiece; // object to hold centerpiece image //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>//
+PImage centerpiece; // object to hold centerpiece image //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>//
 PImage[] images;    // array to hold segment images
 String path;        // base path of text files, images and sounds
 String[] imagestrings;  // array of filenames of segment background images
 String[] segments;      // array of labels of the segments
 String[] colours;       // array of lines from colour text file
+String[] weights;       // array of probability weights, to be converted into probabilities
+float[] probabilities;  // array of probabilies, to be converted into angles
+float[] cumulativeAngles;  // array of angles
 float angle2 = random(0, 2*PI);  // initial wheel rotation, will be changed by spinning
 float angle3 = 0;                // initial offset, 0 means stopped, will jump up on spinning and decrease with friction
 boolean showresult = false;    // bool to check for displaying result of spin
@@ -62,7 +65,7 @@ String[] safeLoadStrings(String path, String errorMessage) {
   }
 }
 
-SoundFile safeLoadSoundFile(String path, String errorMessage) { //<>//
+SoundFile safeLoadSoundFile(String path, String errorMessage) {
 
   try {
     tick = new SoundFile(this, path);
@@ -82,12 +85,12 @@ SoundFile safeLoadSoundFile(String path, String errorMessage) { //<>//
 
 
 void setup() {
-  background(0,255,0);
+  background(0, 255, 0);
   size(800, 800);
-  
+
   // Start server for communcation with outside
-  server = new Server(this, 5000); 
-  
+  server = new Server(this, 5000);
+
   String configfile = "config.txt";
   File fileObject = new File(configfile);
   if (!fileObject.exists()) {
@@ -129,7 +132,38 @@ void setup() {
   segments = safeLoadStrings(path +"/" + configs[1], "no segments found");
 
   colours = safeLoadStrings(path +"/" + configs[4], "no colours found");
+
+  weights = safeLoadStrings(path +"/" + configs[6], "no colours found");
 }
+
+float[] convertWeightsToProbs(String[] weights) {
+  boolean allIsWell = true;
+  float[] probs = new float[weights.length];
+  float accumulator = 0;
+  for (int i=0; i< weights.length; i++) {
+    try {
+      probs[i] = float(weights[i]);
+      accumulator += probs[i];
+    }
+    catch(java.lang.NullPointerException e) {
+      allIsWell = false;
+    }
+  }
+  if (accumulator<=0) {
+    allIsWell = false;
+  } else {
+    for (int i=0; i< weights.length; i++) {
+      probs[i] = probs[i]/accumulator;
+    }
+  }
+  if (!allIsWell) {
+    for (int i=0; i< weights.length; i++) {
+      probs[i] = 1/weights.length;
+    }
+  }
+  return probs;
+}
+
 
 /**
  * Parses a line of the colour file to return the first colour
@@ -180,6 +214,10 @@ void draw() {
   for (int i=0; i< segments.length; i++) {
     segments[i] = segments[i].substring(0, min(40, segments[i].length()));
   }
+
+  probabilities = convertWeightsToProbs(weights);
+
+
   // decrease rate of wheel. 0.99 corresponds to exactly 3 to 4 rotations with the given
   // denominator values in the mouseClicked event. lower number means decrease faster.
   var friction = 0.99;
@@ -251,8 +289,8 @@ void draw() {
     // rect to display text
     rect(quarter-5, quarter, half+10, quarter/2);
     // rect to display removal option
-    fill(200,0,0);
-    rect(quarter-5, half + quarter/2, half+10,  quarter/2);
+    fill(200, 0, 0);
+    rect(quarter-5, half + quarter/2, half+10, quarter/2);
     fill(0);
     // geometry calculations to ensure text fits in box
     float textHeight = determineFontSize(displayText, half, quarter/2);
@@ -270,7 +308,7 @@ void draw() {
     }
     text(placeholderText, px, py) ;
     textSize(50);
-    text("Remove Segment?",quarter+5,half+quarter-30);
+    text("Remove Segment?", quarter+5, half+quarter-30);
     noFill();
   }
 }
@@ -374,10 +412,11 @@ float determineFontSize(String inputText, float targetWidth, float maxHeightSize
  * @param  segnum   int, number of segments
  */
 void drawLabels(float half, float angle, float angle2, float almost, int segnum) {
-  float text_angle = 2*PI/segnum;
+  cumulativeAngles = determineAngles();
+  //float text_angle = 2*PI/segnum;
   // center of rotation is center of wheel
   translate(half, half);
-  rotate(angle/2+ angle2);
+  rotate(angle2);
   for (int i=0; i< segments.length; i++) {
     // get font colour
     color fontColour = 0;
@@ -386,16 +425,16 @@ void drawLabels(float half, float angle, float angle2, float almost, int segnum)
       fontColour = get_first_colour_from_line(colours[i%colours.length]);
       fontColour2 = get_second_colour_from_line(colours[i%colours.length]);
     }
-    rotate(angle);
+    rotate(probabilities[i]*2*PI);
     // inital estimates on font size, requried for helper function
     float targetWidth = almost/2 - 150;
     float maxHeightSize = 0;
-    if (segnum == 2) {
-      maxHeightSize = 100;
-    } else {
-      maxHeightSize = tan(text_angle/2)*100;
-    }
-
+    //if (segnum == 2) {
+    //  maxHeightSize = 100;
+    //} else {
+      maxHeightSize = tan(probabilities[i]*2*PI /2)*100;
+    //}
+    if (maxHeightSize >100){maxHeightSize = 100;}
 
     float newSize = determineFontSize(segments[i], targetWidth, maxHeightSize);
     // size minimum: 10
@@ -412,8 +451,19 @@ void drawLabels(float half, float angle, float angle2, float almost, int segnum)
     rotate(-adjustAngle);
   }
   // undo rotation and translation to return to original point of reference (top right corner)
-  rotate(-angle/2 - angle2);
+  rotate( - angle2);
   translate(-half, -half);
+}
+
+float[] determineAngles(){
+  float accumulator = 0.0;
+  float[] cumulativeAngles = new float[segments.length+1];
+  cumulativeAngles[0] = 0.0;
+  for (int i=1; i<= segments.length; i++) {
+    cumulativeAngles[i] = probabilities[i-1]*2*PI + accumulator;
+    accumulator += probabilities[i-1]*2*PI;
+  }
+  return cumulativeAngles;
 }
 
 /**
@@ -425,6 +475,9 @@ void drawLabels(float half, float angle, float angle2, float almost, int segnum)
  * @param  almost   size of wheel
  */
 void drawSegments(float half, float almost, float angle, float angle2) {
+  cumulativeAngles = determineAngles();
+
+
   for (int i=0; i< segments.length; i++) {
     // get segment bg colours if available
     if (colours != null) {
@@ -449,13 +502,13 @@ void drawSegments(float half, float almost, float angle, float angle2) {
       // the arc becomes a mask to mask out everything OTHER than the arc from the picture
       maskImage = createGraphics(width, width);
       maskImage.beginDraw();
-      maskImage.arc(half, half, almost-10, almost-10, i*angle + angle2, (i+1)*angle + angle2 );
+      maskImage.arc(half, half, almost-10, almost-10, cumulativeAngles[i] + angle2, cumulativeAngles[i+1] + angle2 );
       maskImage.endDraw();
       PImage currentImage = images[fixedindex%images.length];
       currentImage.mask(maskImage);
       image(currentImage, 0, 0);
     } else {
-      arc(half, half, almost-10, almost-10, i*angle + angle2, (i+1)*angle + angle2 );
+      arc(half, half, almost-10, almost-10,  cumulativeAngles[i] + angle2, cumulativeAngles[i+1] + angle2 );
     }
   }
 }
@@ -472,16 +525,16 @@ void strokeText(String message, int x, int y, color c1, color c2, float fontsize
   text(message, x, y);
 }
 
-void spinTheWheel(){
-    // hide result when pressed
-    showresult = false;
-    isPressed = true;
-    // required for measuring lenght of button press
-    timestamp = System.currentTimeMillis();
-    float denominator = random(23.99, 31.65);
-    // these values represent 3 and 4 complete spins of the wheel.
-    // Hence the sample is "fair enough" between the entire range.
-    angle3 = 2*PI/denominator;
+void spinTheWheel() {
+  // hide result when pressed
+  showresult = false;
+  isPressed = true;
+  // required for measuring lenght of button press
+  timestamp = System.currentTimeMillis();
+  float denominator = random(23.99, 31.65);
+  // these values represent 3 and 4 complete spins of the wheel.
+  // Hence the sample is "fair enough" between the entire range.
+  angle3 = 2*PI/denominator;
 }
 
 //void keyPressed(KeyEvent e){
@@ -494,31 +547,31 @@ void spinTheWheel(){
 
 PImage[] removeImage(PImage[] images, int index) {
 
-PImage[] newImages = new PImage[images.length-1];
-for (int i=0; i< images.length; i++) {
-  if (i < index){
-  newImages[i] = images[i];
+  PImage[] newImages = new PImage[images.length-1];
+  for (int i=0; i< images.length; i++) {
+    if (i < index) {
+      newImages[i] = images[i];
+    }
+    if (i> index) {
+      newImages[i-1] = images[i];
+    }
   }
-  if (i> index){
-  newImages[i-1] = images[i];
-  }
-}
-return newImages;
+  return newImages;
 }
 
 
 String[] removeSegment(String[] segments, int index) {
 
-String[] newSegments = new String[segments.length-1];
-for (int i=0; i< segments.length; i++) {
-  if (i < index){
-  newSegments[i] = segments[i];
+  String[] newSegments = new String[segments.length-1];
+  for (int i=0; i< segments.length; i++) {
+    if (i < index) {
+      newSegments[i] = segments[i];
+    }
+    if (i> index) {
+      newSegments[i-1] = segments[i];
+    }
   }
-  if (i> index){
-  newSegments[i-1] = segments[i];
-  }
-}
-return newSegments;
+  return newSegments;
 }
 
 void mouseClicked() {
@@ -528,9 +581,8 @@ void mouseClicked() {
   }
   half = height/2;
   quarter = half/2;
-  if ((mouseX >quarter-5) & (mouseX < half+quarter+5) & (mouseY <half + quarter) & (mouseY >half + quarter - quarter/2)){
-  segments = removeSegment(segments, removalIndex);
-  images = removeImage(images, removalIndex);
+  if ((mouseX >quarter-5) & (mouseX < half+quarter+5) & (mouseY <half + quarter) & (mouseY >half + quarter - quarter/2)) {
+    segments = removeSegment(segments, removalIndex);
+    images = removeImage(images, removalIndex);
   }
-
 }

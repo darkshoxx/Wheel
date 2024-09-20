@@ -31,3 +31,4 @@ TODO:
 - make textbox prettier
 - make build easier
 - general refactor
+- weighting
