@@ -1,4 +1,4 @@
-PImage centerpiece; // object to hold centerpiece image //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>//
+PImage centerpiece; // object to hold centerpiece image //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>//
 PImage[] images;    // array to hold segment images
 String path;        // base path of text files, images and sounds
 String[] imagestrings;  // array of filenames of segment background images
@@ -7,7 +7,7 @@ String[] colours;       // array of lines from colour text file
 String[] weights;       // array of probability weights, to be converted into probabilities
 float[] probabilities;  // array of probabilies, to be converted into angles
 float[] cumulativeAngles;  // array of angles
-float angle2 = random(0, 2*PI);  // initial wheel rotation, will be changed by spinning
+float angle2 = 0//random(0, 2*PI);  // initial wheel rotation, will be changed by spinning
 float angle3 = 0;                // initial offset, 0 means stopped, will jump up on spinning and decrease with friction
 boolean showresult = false;    // bool to check for displaying result of spin
 boolean isPressed = false;     // bool to check button press depth
@@ -62,7 +62,7 @@ String[] safeLoadStrings(String path, String errorMessage) {
   catch(java.lang.NullPointerException e) {
     println(errorMessage);
     return null;
-  }
+  } //<>//
 }
 
 SoundFile safeLoadSoundFile(String path, String errorMessage) {
@@ -83,6 +83,20 @@ SoundFile safeLoadSoundFile(String path, String errorMessage) {
 }
 
 
+int findIndex(float angleRot) {
+  while (angleRot > 2*PI)
+  {
+    angleRot = angleRot - 2*PI;
+  }
+  float[] cumulativeAngles = determineAngles();
+  for (int i=0; i< segments.length; i++) {
+    if ((cumulativeAngles[i]<angleRot)&&(angleRot<cumulativeAngles[i+1]))
+    {
+      return i;
+    }
+  }
+  return 0;
+}
 
 void setup() {
   background(0, 255, 0);
@@ -133,7 +147,7 @@ void setup() {
 
   colours = safeLoadStrings(path +"/" + configs[4], "no colours found");
 
-  weights = safeLoadStrings(path +"/" + configs[6], "no colours found");
+  weights = safeLoadStrings(path +"/" + configs[6], "no weights found");
 }
 
 float[] convertWeightsToProbs(String[] weights) {
@@ -236,7 +250,7 @@ void draw() {
   // on the last moments: Stop wheel, return result
   if (angle3<1e-7&angle3>0) {
     angle3 = 0;
-    removalIndex = (segnum-1) - (ceil((angle2/angle)) % segnum);
+    removalIndex =segnum -1 - (findIndex(angle2)) % segnum;//(segnum-1) - (ceil((angle2/angle)) % segnum);
     displayText = segments[removalIndex];
     showresult = true;
   }
@@ -425,16 +439,19 @@ void drawLabels(float half, float angle, float angle2, float almost, int segnum)
       fontColour = get_first_colour_from_line(colours[i%colours.length]);
       fontColour2 = get_second_colour_from_line(colours[i%colours.length]);
     }
-    rotate(probabilities[i]*2*PI);
+    float thisAngle = probabilities[i]*2*PI;
+    rotate(thisAngle);
     // inital estimates on font size, requried for helper function
     float targetWidth = almost/2 - 150;
     float maxHeightSize = 0;
     //if (segnum == 2) {
     //  maxHeightSize = 100;
     //} else {
-      maxHeightSize = tan(probabilities[i]*2*PI /2)*100;
+    maxHeightSize = tan(probabilities[i]*2*PI /2)*100;
     //}
-    if (maxHeightSize >100){maxHeightSize = 100;}
+    if (maxHeightSize >100) {
+      maxHeightSize = 100;
+    }
 
     float newSize = determineFontSize(segments[i], targetWidth, maxHeightSize);
     // size minimum: 10
@@ -444,18 +461,19 @@ void drawLabels(float half, float angle, float angle2, float almost, int segnum)
     textSize(newSize);
     // rotate font in each segments
     float adjustAngle = asin(newSize/(almost/2));
-    rotate(adjustAngle);
-    strokeText(segments[i], 100, 0, 0, fontColour, newSize);
+    rotate(-thisAngle/2);
+    int heightShift = int(newSize/3); // this should be /2 but /3 looks better.
+    strokeText(segments[i], 100, heightShift, 0, fontColour, newSize);
     // strokeText(segments[i], 100, 0, fontColour2, fontColour); // optional: choose font border yourself
     // rotate back to origin for next segment
-    rotate(-adjustAngle);
+    rotate(thisAngle/2);
   }
   // undo rotation and translation to return to original point of reference (top right corner)
   rotate( - angle2);
   translate(-half, -half);
 }
 
-float[] determineAngles(){
+float[] determineAngles() {
   float accumulator = 0.0;
   float[] cumulativeAngles = new float[segments.length+1];
   cumulativeAngles[0] = 0.0;
@@ -508,7 +526,7 @@ void drawSegments(float half, float almost, float angle, float angle2) {
       currentImage.mask(maskImage);
       image(currentImage, 0, 0);
     } else {
-      arc(half, half, almost-10, almost-10,  cumulativeAngles[i] + angle2, cumulativeAngles[i+1] + angle2 );
+      arc(half, half, almost-10, almost-10, cumulativeAngles[i] + angle2, cumulativeAngles[i+1] + angle2 );
     }
   }
 }
@@ -543,7 +561,18 @@ void spinTheWheel() {
 //}
 //}
 
-
+String[] removeWeight(String[] weights, int index) {
+  String[] newWeights = new String[weights.length-1];
+  for (int i=0; i< weights.length; i++) {
+    if (i < index) {
+      newWeights[i] = weights[i];
+    }
+    if (i> index) {
+      newWeights[i-1] = weights[i];
+    }
+  }
+  return newWeights;
+}
 
 PImage[] removeImage(PImage[] images, int index) {
 
@@ -583,6 +612,12 @@ void mouseClicked() {
   quarter = half/2;
   if ((mouseX >quarter-5) & (mouseX < half+quarter+5) & (mouseY <half + quarter) & (mouseY >half + quarter - quarter/2)) {
     segments = removeSegment(segments, removalIndex);
-    images = removeImage(images, removalIndex);
+    if (images!=null) {
+      images = removeImage(images, removalIndex);
+    }
+    if (weights!=null) {
+      weights = removeWeight(weights, removalIndex);
+    }
+    showresult=false;
   }
 }
