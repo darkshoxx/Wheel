@@ -7,7 +7,7 @@ String[] colours;       // array of lines from colour text file
 String[] weights;       // array of probability weights, to be converted into probabilities
 float[] probabilities;  // array of probabilies, to be converted into angles
 float[] cumulativeAngles;  // array of angles
-float angle2 = 0//random(0, 2*PI);  // initial wheel rotation, will be changed by spinning
+float angle2 = random(0, 2*PI);  // initial wheel rotation, will be changed by spinning
 float angle3 = 0;                // initial offset, 0 means stopped, will jump up on spinning and decrease with friction
 boolean showresult = false;    // bool to check for displaying result of spin
 boolean isPressed = false;     // bool to check button press depth
@@ -84,13 +84,21 @@ SoundFile safeLoadSoundFile(String path, String errorMessage) {
 
 
 int findIndex(float angleRot) {
+  if(angleRot <0){
+  while (angleRot < 0)
+  {
+    angleRot = angleRot + 2*PI;
+  }  
+  
+  }else{
   while (angleRot > 2*PI)
   {
     angleRot = angleRot - 2*PI;
   }
+  }
   float[] cumulativeAngles = determineAngles();
   for (int i=0; i< segments.length; i++) {
-    if ((cumulativeAngles[i]<angleRot)&&(angleRot<cumulativeAngles[i+1]))
+    if ((cumulativeAngles[i]<angleRot)&&(angleRot<cumulativeAngles[i+1])) //<>//
     {
       return i;
     }
@@ -250,7 +258,7 @@ void draw() {
   // on the last moments: Stop wheel, return result
   if (angle3<1e-7&angle3>0) {
     angle3 = 0;
-    removalIndex =segnum -1 - (findIndex(angle2)) % segnum;//(segnum-1) - (ceil((angle2/angle)) % segnum);
+    removalIndex =(segnum  + (findIndex(-angle2))) % segnum;//(segnum-1) - (ceil((angle2/angle)) % segnum);
     displayText = segments[removalIndex];
     showresult = true;
   }
@@ -266,9 +274,11 @@ void draw() {
   ellipse(half, half, almost, almost);
   // test for segment change
   boolean newSegment = false;
-  float oldAngleScale = oldAngle/(2*PI)*segnum;
-  float newAngleScale = angle2/(2*PI)*segnum;
-  if (floor(oldAngleScale) != floor(newAngleScale)) {
+  //float oldAngleScale = oldAngle/(2*PI)*segnum;
+  //float newAngleScale = angle2/(2*PI)*segnum;
+  int oldAngleIndex = findIndex(-oldAngle);
+  int newAngleIndex = findIndex(-angle2);
+  if (oldAngleIndex != newAngleIndex) {
     newSegment = true;
   }
 
@@ -522,7 +532,7 @@ void drawSegments(float half, float almost, float angle, float angle2) {
       maskImage.beginDraw();
       maskImage.arc(half, half, almost-10, almost-10, cumulativeAngles[i] + angle2, cumulativeAngles[i+1] + angle2 );
       maskImage.endDraw();
-      PImage currentImage = images[fixedindex%images.length];
+      PImage currentImage = images[(fixedindex+1)%images.length];
       currentImage.mask(maskImage);
       image(currentImage, 0, 0);
     } else {
