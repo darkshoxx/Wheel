@@ -8,7 +8,7 @@ If on windows, and using releases after 0.5: Java OpenJDK 17 required (get it he
 Instructions:  
 1. Download the latest Release   
 2. Create file "config.txt" in same folder
-3. the configfile should have nine lines (for defaults see config.txt in repo): 
+3. the configfile should have ten lines (for defaults see config.txt in repo): 
     - absolute path of data
     - name of segments file in data folder
     - name of click sound file
@@ -16,8 +16,9 @@ Instructions:
     - name of colours file
     - name of images file
     - name of weights file
-    - port number
     - name of the Wheel Window
+    - own Serverport number
+    - sequence of client port numbers
 
 The Colours file needs to have the same number of rows as the segment file, which is the number of segments on the wheel.
 Each Row will determine two colours: the font colour and the BG colour. 
@@ -29,8 +30,9 @@ You can omit the second colour in every row to just affect the font colour. You 
 The images file needs to have the same number of rows as the segment file. If a colour file and an ingames file are present, the font is taken from the colours, the background is taken from the images. The render of the image goes as follows: The image will be streched to cover exactly the entire wheel. The segment corresponding to the image will mask out all other parts of the image.
 The weights file is a text file with an integer in each row. It needs to have as many rows as the segments file.
 The weights need not add up to anything (like 100) since the probabilites are defined as weight divided by sum of weights.
-The port is required for webserver communications. In case of doubt, use 5000. 2 different wheels cannot have the same port, so make sure to change one if you're using 2 wheels at the same time.
 The name of the Window is necessary for OBS to distinguish uniquely between different wheels
+The Server port is required for webserver communications. In case of doubt, use 5000. 2 different wheels cannot have the same port, so make sure to change one if you're using 2 wheels at the same time.
+The Client ports are the Serverports of the other wheels you wish to interact with as clients
 
 
 The wheel is currently fair to an angle of about 2 degrees i.e. the first segment has a 2/360 higher chance than the others. Clicking multiple times should remove that bias. 
