@@ -2,5 +2,6 @@ D:\DANVID\darkshoxx\Shivers\Wheel
 segments.txt
 click_short.wav
 CenterSmall.png
-colours.txt
-images.txt
+1colours.txt
+1images.txt
+weights.txt
