@@ -1,0 +1,6 @@
+D:\DANVID\darkshoxx\Shivers\Wheel_Puzzles
+segments.txt
+click_short.wav
+CenterSmall.png
+1colours.txt
+1images.txt
