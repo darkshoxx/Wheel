@@ -1,0 +1,10 @@
+D:\DANVID\darkshoxx\Shivers\Wheel_Puzzles
+segments.txt
+click_short.wav
+CenterSmall.png
+colours.txt
+2images.txt
+weights.txt
+Wheel of Puzzles
+5002
+5001 5003

@@ -1,10 +1,10 @@
-D:\DANVID\darkshoxx\Shivers\Wheel
+D:\DANVID\darkshoxx\Shivers\Wheel_Punish
 segments.txt
 click_short.wav
 CenterSmall.png
 colours.txt
-images.txt
+2images.txt
 weights.txt
-Wheel of Ixupi
+Wheel of Punishment
 5003
 5001 5002

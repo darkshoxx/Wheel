@@ -1,4 +1,4 @@
-PImage centerpiece; // object to hold centerpiece image //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>//
+PImage centerpiece; // object to hold centerpiece image //<>// //<>// //<>//
 PImage[] images;    // array to hold segment images
 String path;        // base path of text files, images and sounds
 String[] imagestrings;  // array of filenames of segment background images
@@ -21,6 +21,11 @@ long timestamp = 0;          // button pressing time
 int half;
 int quarter;
 int removalIndex;
+int serverPort;
+int[] clientPorts;
+Client[] clients;
+String wheelName;
+boolean signalSent = false;
 
 import processing.sound.*;
 import java.io.File;
@@ -62,7 +67,7 @@ String[] safeLoadStrings(String path, String errorMessage) {
   catch(java.lang.NullPointerException e) {
     println(errorMessage);
     return null;
-  } //<>//
+  }
 }
 
 SoundFile safeLoadSoundFile(String path, String errorMessage) {
@@ -84,21 +89,20 @@ SoundFile safeLoadSoundFile(String path, String errorMessage) {
 
 
 int findIndex(float angleRot) {
-  if(angleRot <0){
-  while (angleRot < 0)
-  {
-    angleRot = angleRot + 2*PI;
-  }  
-  
-  }else{
-  while (angleRot > 2*PI)
-  {
-    angleRot = angleRot - 2*PI;
-  }
+  if (angleRot <0) {
+    while (angleRot < 0)
+    {
+      angleRot = angleRot + 2*PI;
+    }
+  } else {
+    while (angleRot > 2*PI)
+    {
+      angleRot = angleRot - 2*PI;
+    }
   }
   float[] cumulativeAngles = determineAngles();
   for (int i=0; i< segments.length; i++) {
-    if ((cumulativeAngles[i]<angleRot)&&(angleRot<cumulativeAngles[i+1])) //<>//
+    if ((cumulativeAngles[i]<angleRot)&&(angleRot<cumulativeAngles[i+1]))
     {
       return i;
     }
@@ -110,8 +114,6 @@ void setup() {
   background(0, 255, 0);
   size(800, 800);
 
-  // Start server for communcation with outside
-  server = new Server(this, 5000);
 
   String configfile = "config.txt";
   File fileObject = new File(configfile);
@@ -156,6 +158,24 @@ void setup() {
   colours = safeLoadStrings(path +"/" + configs[4], "no colours found");
 
   weights = safeLoadStrings(path +"/" + configs[6], "no weights found");
+
+  serverPort = int(configs[8]);
+  String clientPortString = configs[9];
+  String[] clientPortStrings = clientPortString.split(" ");
+  clientPorts = new int[clientPortStrings.length];
+  for (int i=0; i<clientPortStrings.length; i++) {
+    clientPorts[i] = int(clientPortStrings[i]);
+  }
+  clients = new Client[clientPortStrings.length];
+  for (int i=0; i<clientPortStrings.length; i++) {
+    clients[i] = new Client(this, "127.0.0.1", clientPorts[i]);
+  }
+
+  wheelName = configs[7];
+  surface.setTitle(wheelName);
+
+  // Start server for communcation with outside
+  server = new Server(this, serverPort);
 }
 
 float[] convertWeightsToProbs(String[] weights) {
@@ -222,7 +242,8 @@ void draw() {
   Client client = server.available();
   if (client != null) {
     String data = client.readString();
-    if (data.equals("Spin")) {
+    println(data);
+    if (data.equals("Spin " + wheelName)) {
       spinTheWheel();
     }
   }
@@ -260,6 +281,9 @@ void draw() {
     angle3 = 0;
     removalIndex =(segnum  + (findIndex(-angle2))) % segnum;//(segnum-1) - (ceil((angle2/angle)) % segnum);
     displayText = segments[removalIndex];
+    if (!showresult) {
+      signalSent=false;
+    }
     showresult = true;
   }
   // see top of file to see how angles work
@@ -334,9 +358,18 @@ void draw() {
     textSize(50);
     text("Remove Segment?", quarter+5, half+quarter-30);
     noFill();
+    if (!signalSent) {
+      sendSegmentToServers(displayText);
+      signalSent = true;
+    }
   }
 }
 
+void sendSegmentToServers(String broadcastText) {
+  for (Client client : clients) {
+    client.write(broadcastText);
+  }
+}
 /**
  * Converts float between 0 and 1 to position on colour wheel
  *

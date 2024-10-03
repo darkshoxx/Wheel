@@ -6,5 +6,5 @@ colours.txt
 images.txt
 weights.txt
 Wheel of Ixupi
-5003
-5001 5002
+5001
+5002 5003
